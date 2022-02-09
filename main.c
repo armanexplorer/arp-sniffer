@@ -35,6 +35,7 @@ typedef struct host_mac_and_ip {
 
 
 // Functions declaration
+const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);           
 void DumpDevices(pcap_if_t*);
 void DumpAddresses(pcap_addr_t*);
 void ProcessPacket (u_char*);
