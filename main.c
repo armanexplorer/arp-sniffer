@@ -335,13 +335,14 @@ char* iptos(u_short family, struct sockaddr *sockaddr, char *address, int addrle
         return "";
     
 
-    if(getnameinfo(sockaddr, 
-        sockaddrlen, 
-        address, 
-        addrlen, 
-        NULL, 
-        0, 
-        NI_NUMERICHOST) != 0) address = NULL;
+    if(getnameinfo(sockaddr,    // A pointer to a socket address structure (sa_family +  sa pointed to sockaddr_in or sockaddr_in6)
+        sockaddrlen,            // The length of the structure pointed to by the sa param of socket address
+        address,                // Buffer to store host_name from ip address of sa
+        addrlen,                // Size of buffer
+        NULL,                   // Buffor to store service_name from port of sa
+        0,                      // Size of buffer
+        NI_NUMERICHOST          // To set host_name format to Numeric instead of FQDN (default)
+    ) != 0) address = NULL;
 
     return address;
 }
