@@ -42,8 +42,9 @@ void PrintARPPacket(u_char*);
 void PrintHostsList();
 void PrintHost(Host);
 void VerboseDumpDevices(pcap_if_t*);
-void IFPrint(pcap_if_t*);
 char* iptos(u_short, struct sockaddr*, char*, int);
+void IFPrint(pcap_if_t*);
+void NtopIFPrint(pcap_if_t*);
 
 // Global variables
 FILE *logfile;
@@ -228,15 +229,15 @@ void VerboseDumpDevices(pcap_if_t *devs){
     printf("\n");
     for(d=devs; d; d=d->next){
         printf("#%d)\n", ++i);
-        IFPrint(d);
+        NtopIFPrint(d); // IFPrint can be used instead
     }
 }
 
 void IFPrint(pcap_if_t *d)
 {
   pcap_addr_t *a;
-  char ip6str[INET_ADDRSTRLEN];
-  char ipstr[INET6_ADDRSTRLEN];
+  char ip6str[INET6_ADDRSTRLEN];
+  char ipstr[INET_ADDRSTRLEN];
 
   /* Name */
   printf("%s\n",d->name);
@@ -271,6 +272,48 @@ void IFPrint(pcap_if_t *d)
         if (a->addr)
           printf("\tAddress: %s\n", iptos(AF_INET6, a->addr, ip6str, sizeof(ip6str)));
        break;
+
+      default:
+        printf("\tAddress Family Name: Unknown\n");
+        break;
+    }
+  }
+  printf("\n");
+}
+
+void NtopIFPrint(pcap_if_t *d)
+{
+  pcap_addr_t *a;
+  char ip6str[INET6_ADDRSTRLEN];
+
+  /* Name */
+  printf("%s\n",d->name);
+
+  /* Description */
+  if (d->description)
+    printf("\tDescription: %s\n",d->description);
+
+  /* Loopback Address*/
+  printf("\tLoopback: %s\n",(d->flags & PCAP_IF_LOOPBACK)?"yes":"no");
+
+  /* IP addresses */
+  for(a=d->addresses;a;a=a->next) {
+    printf("\tAddress Family: #%d\n",a->addr->sa_family);
+  
+    switch(a->addr->sa_family)
+    {
+      case AF_INET:
+        printf("\tAddress Family Name: %s\n", a->addr->sa_family == AF_INET ? "AF_INET":"AF_INET6");
+      case AF_INET6:      
+        if (a->addr)
+          printf("\tAddress: %s\n",inet_ntop(AF_INET, &(((struct sockaddr_in *)a->addr)->sin_addr), ip6str, sizeof(ip6str)));
+        if (a->netmask)
+          printf("\tNetmask: %s\n",inet_ntop(AF_INET, &(((struct sockaddr_in *)a->netmask)->sin_addr), ip6str, sizeof(ip6str)));
+        if (a->broadaddr)
+          printf("\tBroadcast Address: %s\n",inet_ntop(AF_INET, &(((struct sockaddr_in *)a->broadaddr)->sin_addr), ip6str, sizeof(ip6str)));
+        if (a->dstaddr)
+          printf("\tDestination Address: %s\n",inet_ntop(AF_INET, &(((struct sockaddr_in *)a->dstaddr)->sin_addr), ip6str, sizeof(ip6str)));
+        break;
 
       default:
         printf("\tAddress Family Name: Unknown\n");
